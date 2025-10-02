@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator DFT dan iDFT</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 { text-align: center; color: #0056b3; }
+        .tab {
+            overflow: hidden;
+            border-bottom: 2px solid #ccc;
+            margin-bottom: 20px;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            font-size: 17px;
+            border-radius: 6px 6px 0 0;
+        }
+        .tab button:hover { background-color: #ddd; }
+        .tab button.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .tab-content { display: none; }
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        label { margin-bottom: 10px; font-weight: bold; }
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        button.secondary {
+            background-color: #6c757d;
+        }
+        button.secondary:hover {
+            background-color: #5a6268;
+        }
+        .output-section { margin-top: 20px; }
+        .rumus, .perhitungan, .hasil {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+        }
+        h3 {
+            margin-top: 0;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Kalkulator DFT & iDFT</h1>
+
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'DFT')">DFT</button>
+            <button class="tablinks" onclick="openTab(event, 'IDFT')">iDFT</button>
+        </div>
+
+        <!-- Tab DFT -->
+        <div id="DFT" class="tab-content" style="display: block;">
+            <div class="input-section">
+                <label for="inputFx">Masukkan nilai f(x) (pisahkan dengan koma):</label>
+                <input type="text" id="inputFx" placeholder="contoh: 1, 2, 3, 4">
+                <button onclick="hitungDFT()">Hitung DFT</button>
+            </div>
+            <div class="output-section">
+                <div class="rumus">
+                    <h3>Rumus Umum DFT</h3>
+                    <p>\( X_k = \sum_{n=0}^{N-1} x_n \left( \cos\left(\frac{2\pi kn}{N}\right) - i\sin\left(\frac{2\pi kn}{N}\right) \right) \)</p>
+                </div>
+                <div id="dft-perhitungan-container" class="perhitungan" style="display:none;">
+                    <h3>Langkah Perhitungan DFT</h3>
+                    <div id="dft-perhitungan-langkah"></div>
+                </div>
+                <div id="dft-hasil-container" class="hasil" style="display:none;">
+                    <h3>Hasil DFT</h3>
+                    <div id="dft-hasil-output"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab iDFT -->
+        <div id="IDFT" class="tab-content">
+            <div class="input-section">
+                <label for="inputXk">Masukkan nilai X(k) (pisahkan dengan koma):</label>
+                <input type="text" id="inputXk" placeholder="contoh: 10, -2-2i, -2, -2+2i">
+                <div>
+                    <button onclick="hitungIDFT()">Hitung iDFT</button>
+                    <button class="secondary" onclick="copyDFTOutput()">Salin Hasil DFT</button>
+                </div>
+            </div>
+            <div class="output-section">
+                <div class="rumus">
+                    <h3>Rumus Umum iDFT</h3>
+                    <p>\( x_n = \frac{1}{N} \sum_{k=0}^{N-1} X_k \cdot e^{i \frac{2\pi kn}{N}} \)</p>
+                    <p>\( x_n = \frac{1}{N} \sum_{k=0}^{N-1} X_k \left( \cos\left(\frac{2\pi kn}{N}\right) + i\sin\left(\frac{2\pi kn}{N}\right) \right) \)</p>
+                </div>
+                <div id="idft-perhitungan-container" class="perhitungan" style="display:none;">
+                    <h3>Langkah Perhitungan iDFT</h3>
+                    <div id="idft-perhitungan-langkah"></div>
+                </div>
+                <div id="idft-hasil-container" class="hasil" style="display:none;">
+                    <h3>Hasil iDFT</h3>
+                    <div id="idft-hasil-output"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // Variabel global untuk menyimpan hasil DFT
+    let dftOutputForCopy = [];
+
+    function openTab(evt, tabName) {
+        let i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+
+    // Fungsi untuk menghitung DFT
+    function hitungDFT() {
+        const inputString = document.getElementById('inputFx').value;
+        if (!inputString) { alert('Silakan masukkan nilai f(x).'); return; }
+        
+        const x_n = inputString.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+        const N = x_n.length;
+        if (N === 0) { alert('Input tidak valid.'); return; }
+
+        let perhitunganHtml = '';
+        let hasilHtml = '<p>Hasil DFT-nya (Xk) adalah:</p><ul>';
+        dftOutputForCopy = [];
+
+        for (let k = 0; k < N; k++) {
+            let real = 0;
+            let imag = 0;
+            perhitunganHtml += `<h4>Untuk k = ${k}:</h4><p>\\( X_${k} = \\sum_{n=0}^{${N-1}} x_n e^{-i \\frac{2\\pi(${k})n}{${N}}} \\)</p>`;
+            let detailPerhitungan = `\\( X_${k} = `;
+
+            for (let n = 0; n < N; n++) {
+                const angle = (2 * Math.PI * k * n) / N;
+                real += x_n[n] * Math.cos(angle);
+                imag -= x_n[n] * Math.sin(angle);
+                detailPerhitungan += `${x_n[n]} e^{-i \\frac{2\\pi(${k})(${n})}{${N}}}`;
+                if (n < N - 1) detailPerhitungan += ' + ';
+            }
+            detailPerhitungan += ' \\)';
+            perhitunganHtml += `<p>${detailPerhitungan}</p>`;
+            perhitunganHtml += `<p>\\( X_${k} \\approx ${real.toFixed(4)} + (${imag.toFixed(4)})i \\)</p><hr>`;
+            hasilHtml += `<li>\\( X_{${k}} \\approx ${real.toFixed(4)} ${imag.toFixed(4) < 0 ? '' : '+'} ${imag.toFixed(4)}i \\)</li>`;
+            
+            dftOutputForCopy.push({ real: real, imag: imag });
+        }
+        hasilHtml += '</ul>';
+
+        document.getElementById('dft-perhitungan-container').style.display = 'block';
+        document.getElementById('dft-hasil-container').style.display = 'block';
+        document.getElementById('dft-perhitungan-langkah').innerHTML = perhitunganHtml;
+        document.getElementById('dft-hasil-output').innerHTML = hasilHtml;
+        MathJax.typesetPromise();
+    }
+    
+    // Fungsi untuk mem-parsing input bilangan kompleks
+    function parseComplex(str) {
+        str = str.trim();
+        const iIndex = str.lastIndexOf('i');
+        if (iIndex === -1) return { real: parseFloat(str), imag: 0 };
+
+        const realPartStr = str.substring(0, iIndex).replace(/[+-]$/, '');
+        const signIndex = str.substring(0, iIndex).search(/[+-](?=\d|i)/);
+
+        if (iIndex === 0 || (iIndex > 0 && str[iIndex-1] === '+' || str[iIndex-1] === '-')) { // Kasus seperti "i", "+i", "-i"
+            let imagPart = 1;
+            if(iIndex > 0 && str[iIndex-1] === '-') imagPart = -1;
+            return { real: 0, imag: imagPart };
+        }
+        
+        let real = 0;
+        let imag = 0;
+        
+        const lastSignIndex = Math.max(str.lastIndexOf('+', iIndex-1), str.lastIndexOf('-', iIndex-1));
+
+        if (lastSignIndex > 0) {
+             real = parseFloat(str.substring(0, lastSignIndex));
+             const imagStr = str.substring(lastSignIndex, iIndex);
+             imag = parseFloat(imagStr.replace('i','').trim() + '1') || (imagStr.includes('-') ? -1 : 1);
+        } else {
+            real = 0;
+            const imagStr = str.substring(0, iIndex+1);
+            imag = parseFloat(imagStr.replace('i','')) || (imagStr.includes('-') ? -1 : 1);
+        }
+        return { real: real, imag: imag };
+    }
+
+    // Fungsi untuk menghitung iDFT
+    function hitungIDFT() {
+        const inputString = document.getElementById('inputXk').value;
+        if (!inputString) { alert('Silakan masukkan nilai X(k).'); return; }
+
+        const X_k_str = inputString.split(',');
+        const X_k = X_k_str.map(parseComplex);
+        const N = X_k.length;
+        if (N === 0) { alert('Input tidak valid.'); return; }
+
+        let perhitunganHtml = '';
+        let hasilHtml = '<p>Hasil iDFT-nya (xn) adalah:</p><ul>';
+
+        for (let n = 0; n < N; n++) {
+            let sumReal = 0;
+            let sumImag = 0;
+
+            perhitunganHtml += `<h4>Untuk n = ${n}:</h4><p>\\( x_${n} = \\frac{1}{${N}} \\sum_{k=0}^{${N-1}} X_k e^{i \\frac{2\\pi k(${n})}{${N}}} \\)</p>`;
+
+            for (let k = 0; k < N; k++) {
+                const angle = (2 * Math.PI * k * n) / N;
+                const cos_angle = Math.cos(angle);
+                const sin_angle = Math.sin(angle);
+                
+                // (a + bi)(c + di) = (ac - bd) + i(ad + bc)
+                sumReal += X_k[k].real * cos_angle - X_k[k].imag * sin_angle;
+                sumImag += X_k[k].real * sin_angle + X_k[k].imag * cos_angle;
+            }
+
+            const finalReal = sumReal / N;
+            const finalImag = sumImag / N; // Seharusnya mendekati 0 untuk sinyal real
+
+            perhitunganHtml += `<p>\\( x_${n} = \\frac{1}{${N}} \\left( ${sumReal.toFixed(4)} + ${sumImag.toFixed(4)}i \\right) \\)</p>`;
+            perhitunganHtml += `<p>\\( x_${n} \\approx ${finalReal.toFixed(4)} ${finalImag.toFixed(4) < 0 ? '' : '+'} ${finalImag.toFixed(4)}i \\)</p><hr>`;
+            hasilHtml += `<li>\\( x_{${n}} \\approx ${finalReal.toFixed(4)} \\)</li>`;
+        }
+        hasilHtml += '</ul><p><i>(Bagian imajiner diabaikan karena biasanya sangat kecil akibat kesalahan pembulatan)</i></p>';
+
+        document.getElementById('idft-perhitungan-container').style.display = 'block';
+        document.getElementById('idft-hasil-container').style.display = 'block';
+        document.getElementById('idft-perhitungan-langkah').innerHTML = perhitunganHtml;
+        document.getElementById('idft-hasil-output').innerHTML = hasilHtml;
+        MathJax.typesetPromise();
+    }
+    
+    // Fungsi untuk menyalin output DFT ke input iDFT
+    function copyDFTOutput() {
+        if (dftOutputForCopy.length === 0) {
+            alert("Harap jalankan perhitungan DFT terlebih dahulu.");
+            return;
+        }
+        const formattedOutput = dftOutputForCopy.map(c => {
+            let imagPart = c.imag.toFixed(4);
+            if (c.imag >= 0) {
+                return `${c.real.toFixed(4)}+${imagPart}i`;
+            } else {
+                return `${c.real.toFixed(4)}${imagPart}i`;
+            }
+        }).join(', ');
+        
+        document.getElementById('inputXk').value = formattedOutput;
+    }
+
+</script>
+
+</body>
+</html>
