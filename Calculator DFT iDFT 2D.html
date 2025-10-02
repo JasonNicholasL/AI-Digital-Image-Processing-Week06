@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator 2D DFT dan 2D iDFT dengan Rumus Detail</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px; background-color: #f4f4f9; color: #333;
+        }
+        .container {
+            max-width: 950px; margin: auto; background: #fff; padding: 20px;
+            border-radius: 8px; box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 { text-align: center; color: #0056b3; }
+        .tab {
+            overflow: hidden; border-bottom: 2px solid #ccc; margin-bottom: 20px;
+        }
+        .tab button {
+            background-color: inherit; float: left; border: none; outline: none;
+            cursor: pointer; padding: 14px 16px; transition: 0.3s;
+            font-size: 17px; border-radius: 6px 6px 0 0;
+        }
+        .tab button:hover { background-color: #ddd; }
+        .tab button.active { background-color: #007bff; color: white; }
+        .tab-content { display: none; }
+        .input-section { text-align: center; margin-bottom: 20px; }
+        label { margin-bottom: 10px; font-weight: bold; display: block; }
+        textarea {
+            width: 80%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd;
+            border-radius: 4px; font-size: 14px; font-family: 'Courier New', Courier, monospace;
+            min-height: 100px;
+        }
+        button {
+            padding: 10px 20px; background-color: #007bff; color: white;
+            border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        button.secondary { background-color: #6c757d; }
+        button.secondary:hover { background-color: #5a6268; }
+        .output-section { margin-top: 20px; }
+        .rumus, .perhitungan, .hasil {
+            background: #f8f9fa; border: 1px solid #e9ecef; padding: 15px;
+            border-radius: 4px; margin-bottom: 15px; overflow-x: auto;
+        }
+        h3, h4 {
+            margin-top: 0; border-bottom: 2px solid #007bff; padding-bottom: 5px;
+        }
+        h4 { border-bottom: 1px solid #ccc; }
+        table {
+            border-collapse: collapse; margin: 15px auto; font-size: 12px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: #007bff; color: white; }
+        details {
+            border: 1px solid #ccc; border-radius: 4px; padding: 10px; margin-bottom: 10px;
+        }
+        summary {
+            font-weight: bold; cursor: pointer; color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Kalkulator 2D DFT & 2D iDFT dengan Rumus Detail</h1>
+
+    <div class="tab">
+        <button class="tablinks active" onclick="openTab(event, 'DFT')">2D DFT</button>
+        <button class="tablinks" onclick="openTab(event, 'IDFT')">2D iDFT</button>
+    </div>
+
+    <!-- Tab 2D DFT -->
+    <div id="DFT" class="tab-content" style="display: block;">
+        <div class="input-section">
+            <label for="inputFxy">Masukkan matriks f(x, y):</label>
+            <textarea id="inputFxy" placeholder="Setiap baris untuk matriks, pisahkan nilai dengan koma. Contoh:&#10;1, 2&#10;3, 4"></textarea>
+            <button onclick="hitungDFT2D()">Hitung 2D DFT</button>
+        </div>
+        <div class="output-section">
+            <div class="rumus">
+                <h3>Rumus Umum 2D DFT</h3>
+                <p>\( F(u, v) = \sum_{x=0}^{M-1} \sum_{y=0}^{N-1} f(x, y) \cdot e^{-j 2\pi (\frac{ux}{M} + \frac{vy}{N})} \)</p>
+                <p>Perhitungan dilakukan menggunakan <b>sifat separabilitas</b>, yaitu dengan melakukan 1D DFT pada setiap baris, diikuti oleh 1D DFT pada setiap kolom dari hasilnya.</p>
+            </div>
+            <div id="dft-perhitungan-container" class="perhitungan" style="display:none;"></div>
+            <div id="dft-hasil-container" class="hasil" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Tab 2D iDFT -->
+    <div id="IDFT" class="tab-content">
+        <div class="input-section">
+            <label for="inputFuv">Masukkan matriks F(u, v):</label>
+            <textarea id="inputFuv" placeholder="Masukkan matriks kompleks. Contoh:&#10;10, -2&#10;-4, 0"></textarea>
+            <div>
+                <button onclick="hitungIDFT2D()">Hitung 2D iDFT</button>
+                <button class="secondary" onclick="copyDFTOutput()">Salin Hasil DFT</button>
+            </div>
+        </div>
+        <div class="output-section">
+             <div class="rumus">
+                <h3>Rumus Umum 2D iDFT</h3>
+                <p>\( f(x, y) = \frac{1}{MN} \sum_{u=0}^{M-1} \sum_{v=0}^{N-1} F(u, v) \cdot e^{j 2\pi (\frac{ux}{M} + \frac{vy}{N})} \)</p>
+                 <p>Perhitungan dilakukan menggunakan <b>sifat separabilitas</b>, yaitu dengan melakukan 1D iDFT pada setiap baris, diikuti oleh 1D iDFT pada setiap kolom dari hasilnya.</p>
+            </div>
+            <div id="idft-perhitungan-container" class="perhitungan" style="display:none;"></div>
+            <div id="idft-hasil-container" class="hasil" style="display:none;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// =====================================================================
+// UTILITIES & HELPERS
+// =====================================================================
+const Complex = {
+    add: (c1, c2) => ({ real: c1.real + c2.real, imag: c1.imag + c2.imag }),
+    multiply: (c1, c2) => ({
+        real: c1.real * c2.real - c1.imag * c2.imag,
+        imag: c1.real * c2.imag + c1.imag * c2.real
+    }),
+    from_polar: (r, theta) => ({ real: r * Math.cos(theta), imag: r * Math.sin(theta) })
+};
+let dftOutputForCopy = null;
+function openTab(evt, tabName) {
+    let i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tab-content");
+    for (i = 0; i < tabcontent.length; i++) tabcontent[i].style.display = "none";
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) tablinks[i].className = tablinks[i].className.replace(" active", "");
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+}
+function parseComplex(str) {
+    str = str.trim().replace(/\s/g, '');
+    if (!str.includes('i')) return { real: parseFloat(str) || 0, imag: 0 };
+    if (str === 'i') return { real: 0, imag: 1 };
+    if (str === '-i') return { real: 0, imag: -1 };
+    const match = str.match(/([+-]?\d*\.?\d*)([+-]\d*\.?\d+)i/);
+    if (match) {
+        const real = parseFloat(match[1]) || 0;
+        let imag = parseFloat(match[2].replace('+', ''));
+        if (isNaN(imag)) imag = (match[2] === '+') ? 1 : -1;
+        return { real, imag };
+    }
+    const imagMatch = str.match(/([+-]?\d*\.?\d*)i/);
+    if (imagMatch) {
+         let imag = parseFloat(imagMatch[1]);
+         if (isNaN(imag)) imag = (imagMatch[1].includes('-')) ? -1 : 1;
+         return {real: 0, imag: imag};
+    }
+    return { real: parseFloat(str) || 0, imag: 0 };
+}
+function parseMatrixInput(textareaId, isComplex) {
+    const text = document.getElementById(textareaId).value.trim();
+    if (!text) return null;
+    return text.split('\n').map(rowStr =>
+        rowStr.split(',').map(valStr => {
+            const val = isComplex ? parseComplex(valStr) : { real: parseFloat(valStr), imag: 0 };
+            return isNaN(val.real) ? {real:0, imag:0} : val;
+        })
+    );
+}
+function complexToStr(c, p = 2) {
+    if (Math.abs(c.imag) < 1e-9 && Math.abs(c.real) < 1e-9) return "0";
+    if (Math.abs(c.imag) < 1e-9) return c.real.toFixed(p);
+    if (Math.abs(c.real) < 1e-9) return `${c.imag.toFixed(p)}j`;
+    const sign = c.imag > 0 ? '+' : '';
+    return `${c.real.toFixed(p)}${sign}${c.imag.toFixed(p)}j`;
+}
+function renderMatrix(matrix, caption, precision = 2) {
+    let html = `<h4>${caption}</h4><table>`;
+    for (const row of matrix) {
+        html += '<tr>';
+        for (const val of row) {
+            html += `<td>${complexToStr(val, precision)}</td>`;
+        }
+        html += '</tr>';
+    }
+    return html + '</table>';
+}
+
+// =====================================================================
+// CORE 1D TRANSFORM FUNCTIONS
+// =====================================================================
+function dft1D(x_n) {
+    const N = x_n.length;
+    const X_k = [];
+    for (let k = 0; k < N; k++) {
+        let sum = { real: 0, imag: 0 };
+        for (let n = 0; n < N; n++) {
+            const angle = -2 * Math.PI * k * n / N;
+            const twiddle = Complex.from_polar(1, angle);
+            const term = Complex.multiply(x_n[n], twiddle);
+            sum = Complex.add(sum, term);
+        }
+        X_k.push(sum);
+    }
+    return X_k;
+}
+function idft1D(X_k) {
+    const N = X_k.length;
+    const x_n = [];
+    for (let n = 0; n < N; n++) {
+        let sum = { real: 0, imag: 0 };
+        for (let k = 0; k < N; k++) {
+            const angle = 2 * Math.PI * k * n / N;
+            const twiddle = Complex.from_polar(1, angle);
+            const term = Complex.multiply(X_k[k], twiddle);
+            sum = Complex.add(sum, term);
+        }
+        x_n.push({ real: sum.real / N, imag: sum.imag / N });
+    }
+    return x_n;
+}
+
+// =====================================================================
+// 2D DFT & iDFT CONTROLLERS
+// =====================================================================
+function hitungDFT2D() {
+    const inputMatrix = parseMatrixInput('inputFxy', false);
+    if (!inputMatrix || inputMatrix.length === 0) { alert("Input tidak valid."); return; }
+    
+    const M = inputMatrix.length; // rows
+    const N = inputMatrix[0].length; // cols
+    let perhitunganHtml = "<h3>Langkah-langkah Perhitungan</h3>";
+
+    // --- Step 1: 1D DFT on each row ---
+    perhitunganHtml += "<h4>Langkah 1: Menghitung 1D DFT pada setiap Baris</h4>";
+    const intermediateMatrix = [];
+    for (let i = 0; i < M; i++) {
+        const row = inputMatrix[i];
+        const transformedRow = dft1D(row);
+        intermediateMatrix.push(transformedRow);
+        
+        perhitunganHtml += `<details><summary>Perhitungan untuk Baris ke-${i + 1}</summary>`;
+        for(let v=0; v < N; v++) {
+             let formula = `\\( F'(${i},${v}) = \\sum_{y=0}^{${N-1}} f(${i}, y) \\cdot e^{-j \\frac{2\\pi vy}{N}} = `;
+             for(let y=0; y < N; y++){
+                 formula += `(${row[y].real}) e^{-j \\frac{2\\pi (${v})(${y})}{${N}}}` + (y < N - 1 ? " + " : "");
+             }
+             formula += ` \\approx ${complexToStr(transformedRow[v])} \\)`;
+             perhitunganHtml += `<p>${formula}</p>`;
+        }
+        perhitunganHtml += "</details>";
+    }
+    perhitunganHtml += renderMatrix(intermediateMatrix, "Hasil Matriks Antara F'(i, v)");
+
+    // --- Step 2: 1D DFT on each column ---
+    perhitunganHtml += "<h4>Langkah 2: Menghitung 1D DFT pada setiap Kolom (dari hasil antara)</h4>";
+    const finalMatrix = Array(M).fill(0).map(() => Array(N));
+    for (let v = 0; v < N; v++) { // iterate over columns
+        const column = intermediateMatrix.map(row => row[v]);
+        const transformedColumn = dft1D(column);
+
+        perhitunganHtml += `<details><summary>Perhitungan untuk Kolom ke-${v + 1}</summary>`;
+        for (let u = 0; u < M; u++) { // u is the new row index
+            finalMatrix[u][v] = transformedColumn[u];
+            let formula = `\\( F(${u},${v}) = \\sum_{x=0}^{${M-1}} F'({x}, ${v}) \\cdot e^{-j \\frac{2\\pi ux}{M}} = `;
+            for(let x=0; x < M; x++){
+                 formula += `(${complexToStr(column[x],2)}) e^{-j \\frac{2\\pi (${u})(${x})}{${M}}}` + (x < M - 1 ? " + " : "");
+            }
+            formula += ` \\approx ${complexToStr(finalMatrix[u][v])} \\)`;
+            perhitunganHtml += `<p>${formula}</p>`;
+        }
+         perhitunganHtml += "</details>";
+    }
+    dftOutputForCopy = finalMatrix;
+
+    // --- Display Results ---
+    document.getElementById('dft-perhitungan-container').innerHTML = perhitunganHtml;
+    document.getElementById('dft-perhitungan-container').style.display = 'block';
+    document.getElementById('dft-hasil-container').innerHTML = renderMatrix(finalMatrix, "Hasil Akhir 2D DFT F(u, v)");
+    document.getElementById('dft-hasil-container').style.display = 'block';
+    MathJax.typesetPromise();
+}
+
+function hitungIDFT2D() {
+    const inputMatrix = parseMatrixInput('inputFuv', true);
+    if (!inputMatrix || inputMatrix.length === 0) { alert("Input tidak valid."); return; }
+
+    const M = inputMatrix.length; // rows
+    const N = inputMatrix[0].length; // cols
+    let perhitunganHtml = "<h3>Langkah-langkah Perhitungan</h3>";
+
+    // --- Step 1: 1D iDFT on each row ---
+    perhitunganHtml += "<h4>Langkah 1: Menghitung 1D iDFT pada setiap Baris</h4>";
+    const intermediateMatrix = [];
+    for (let u = 0; u < M; u++) {
+        const row = inputMatrix[u];
+        const transformedRow = idft1D(row);
+        intermediateMatrix.push(transformedRow);
+        
+        perhitunganHtml += `<details><summary>Perhitungan untuk Baris ke-${u + 1}</summary>`;
+        for(let y=0; y < N; y++) {
+             let formula = `\\( f'(${u},${y}) = \\frac{1}{${N}} \\sum_{v=0}^{${N-1}} F(${u}, v) \\cdot e^{j \\frac{2\\pi vy}{N}} = \\frac{1}{${N}} (`;
+             for(let v=0; v < N; v++){
+                 formula += `(${complexToStr(row[v],2)}) e^{j \\frac{2\\pi (${v})(${y})}{${N}}}` + (v < N - 1 ? " + " : "");
+             }
+             formula += `) \\approx ${complexToStr(transformedRow[y])} \\)`;
+             perhitunganHtml += `<p>${formula}</p>`;
+        }
+        perhitunganHtml += "</details>";
+    }
+    perhitunganHtml += renderMatrix(intermediateMatrix, "Hasil Matriks Antara f'(u, y)");
+
+    // --- Step 2: 1D iDFT on each column ---
+    perhitunganHtml += "<h4>Langkah 2: Menghitung 1D iDFT pada setiap Kolom (dari hasil antara)</h4>";
+    const finalMatrix = Array(M).fill(0).map(() => Array(N));
+    for (let y = 0; y < N; y++) {
+        const column = intermediateMatrix.map(row => row[y]);
+        const transformedColumn = idft1D(column);
+        
+        perhitunganHtml += `<details><summary>Perhitungan untuk Kolom ke-${y + 1}</summary>`;
+        for (let x = 0; x < M; x++) {
+            finalMatrix[x][y] = transformedColumn[x];
+            let formula = `\\( f(${x},${y}) = \\frac{1}{${M}} \\sum_{u=0}^{${M-1}} f'({u}, ${y}) \\cdot e^{j \\frac{2\\pi ux}{M}} = \\frac{1}{${M}} (`;
+            for(let u=0; u < M; u++){
+                 formula += `(${complexToStr(column[u],2)}) e^{j \\frac{2\\pi (${u})(${x})}{${M}}}` + (u < M - 1 ? " + " : "");
+            }
+            formula += `) \\approx ${complexToStr(finalMatrix[x][y])} \\)`;
+            perhitunganHtml += `<p>${formula}</p>`;
+        }
+        perhitunganHtml += "</details>";
+    }
+
+    // --- Display Results ---
+    document.getElementById('idft-perhitungan-container').innerHTML = perhitunganHtml;
+    document.getElementById('idft-perhitungan-container').style.display = 'block';
+    document.getElementById('idft-hasil-container').innerHTML = renderMatrix(finalMatrix, "Hasil Akhir 2D iDFT f(x, y)");
+    document.getElementById('idft-hasil-container').style.display = 'block';
+    MathJax.typesetPromise();
+}
+
+function copyDFTOutput() {
+    if (!dftOutputForCopy) {
+        alert("Harap jalankan perhitungan 2D DFT terlebih dahulu."); return;
+    }
+    const formattedString = dftOutputForCopy.map(row => 
+        row.map(c => complexToStr(c, 4)).join(', ')
+    ).join('\n');
+    document.getElementById('inputFuv').value = formattedString;
+}
+</script>
+
+</body>
+</html>
